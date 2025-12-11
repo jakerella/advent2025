@@ -7,35 +7,81 @@ getInput().split('\n').forEach(l => {
 })
 // console.log(devices)
 
-let p1 = 0
-const next = ['you']
-while (next.length) {
-    const name = next.shift()
-    if (!name) { break }
-    if (name === 'out') {
-        p1++
-    } else {
-        next.push(...devices[name])
-    }
+// let p1 = 0
+// let next = ['you']
+// while (next.length) {
+//     const name = next.shift()
+//     if (!name) { break }
+//     if (name === 'out') {
+//         p1++
+//     } else {
+//         next.push(...devices[name])
+//     }
+// }
+
+// console.log('Part 1:', p1)
+
+
+function next(name, path = [], seen = new Set()) {
+    seen.add(name)
+    devices[name]?.forEach(out => (!seen.has(out)) ? next(out, path, seen) : null )
+    path.push(name)
+    return path
 }
+const path = next('svr')
+// console.log(path)
 
-console.log('Part 1:', p1)
+function countPaths(source, dest, sorted = []) {
+    const paths = { [source]: 1 }
+    sorted.forEach(name => {
+        devices[name]?.forEach(out => {
+            // console.log(`${out} = ${paths[out] || 0} + ${paths[name]} (${name})`)
+            paths[out] = (paths[out] || 0) + (paths[name] || 0)
+        })
+    })
+    // console.log(paths)
+    return paths[dest]
+}
+path.reverse()
+const svrtofft = countPaths('svr', 'fft', path)
+const svrtodac = countPaths('svr', 'dac', path)
+const ffttodac = countPaths('fft', 'dac', path)
+const dactofft = countPaths('dac', 'fft', path)
+const ffttoout = countPaths('fft', 'out', path)
+const dactoout = countPaths('dac', 'out', path)
 
-// console.log('Part 2:', 0)
+// console.log(svrtofft, svrtodac, ffttodac, dactofft, ffttoout, dactoout)
+const p2 = (svrtofft * ffttodac * dactoout) + (svrtodac * dactofft * ffttoout)
+console.log('Part 2:', p2)
 
 
 function getInput(test) {
     if (test) {
-        return `aaa: you hhh
-you: bbb ccc
-bbb: ddd eee
-ccc: ddd eee fff
-ddd: ggg
-eee: out
-fff: out
+        // Part 2
+        return `svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
 ggg: out
-hhh: ccc fff iii
-iii: out`
+hhh: out`
+        // Part 1
+//         return `aaa: you hhh
+// you: bbb ccc
+// bbb: ddd eee
+// ccc: ddd eee fff
+// ddd: ggg
+// eee: out
+// fff: out
+// ggg: out
+// hhh: ccc fff iii
+// iii: out`
     }
     return `ojt: rum xgy guf mqs
 srg: mqo ufz
